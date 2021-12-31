@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "LoraReceiver",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"array": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp",
+			"utility": "cpp",
+			"system_error": "cpp"
+		}
+	}
+}
