@@ -58,7 +58,7 @@ This guide assumes you have some soldering ability and a basic-ish understanding
     1. Heat Shrinked Sheathing -> Gnd
     2. Red -> USB (Power: Use usb as it's regulated power. Do not go to 3.3 or JST)
     3. Black -> 5 (Throttle Channel)
-    4. White -> 6 (Aux Switch Channel)
+    4. White -> 9 (Aux Switch Channel)
     5. Green -> Unused
 
 6. Glue the cable in with hot glue or zip tie it so it stays secure.

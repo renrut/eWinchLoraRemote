@@ -24,7 +24,7 @@
 #define POTPIN A1
 
 #define STRENGTH_FLASH_INTERVAL_MILLIS 5000
-#define DEFAULT_FLASH_MILLIS 500
+#define DEFAULT_FLASH_MILLIS 250
 #define CONN_WAIT_TIME_MILLIS 1000
 #define STRENGTH_THRESHHOLD 150
 
@@ -48,7 +48,7 @@ void flashLed(int ledPin, int delayTime) {
 }
 
 void flashLed(int ledPin) {
-  flashLed(ledPin, 500);
+  flashLed(ledPin, DEFAULT_FLASH_MILLIS);
 }
 
 void solidLed(int ledPin) {

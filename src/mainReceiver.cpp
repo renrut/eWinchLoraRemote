@@ -12,7 +12,13 @@
 //Motor Control
 #define THROTTLE_PIN 5
 #define AUX_SWITCH_PIN 6
-#define MID_POINT 1500
+
+//PWM uS values
+#define MID_POINT 1400
+#define DEADZONE 500
+#define DEADZONE_BUFFER 75
+#define AUX_ON 2000
+#define AUX_OFF 1000
 #define TIMEOUT 500
 
 Servo throttle;
@@ -31,10 +37,14 @@ unsigned long timeOfLastPacket;
 //Radio
 RadioHandler* radioHandler;
 
+//Aux Button
+boolean auxDepressed;
 
+//FAILSAFE Method in case radio loses connection. Shut off motor and 
 void sendFailsafePWM(){
-  //FAILSAFE
+  // auxDepressed = false;
   throttle.writeMicroseconds(MID_POINT);
+  // aux.writeMicroseconds(AUX_OFF);
 }
 
 //Check how long its been since the last valid packet.
@@ -46,14 +56,39 @@ void checkSendFailsafePWM(){
   }
 }
 
-void sendControllerPWM(ControllerInput* input){
-  //Check for aux button (lower button)
-  if(input->getLowerButton()){
-    aux.writeMicroseconds(2000);
-  } else {
-    aux.writeMicroseconds(1000);
+// Map the controller pot value so the controller maps 500+/- 75 to 1400.
+int mapPotValue(int potVal){
+  //Define controller deadzone
+  if (potVal <= DEADZONE + DEADZONE_BUFFER && potVal >= DEADZONE - DEADZONE_BUFFER) {
+    return MID_POINT;
   }
+  // Crawl Mode
+  if (potVal < DEADZONE - DEADZONE_BUFFER) {
+    return map(potVal, 0, DEADZONE + DEADZONE_BUFFER, 1000, 1400);
+  }
+  // Tow Mode
+  if (potVal > DEADZONE + DEADZONE_BUFFER) {
+    return map(potVal, DEADZONE + DEADZONE_BUFFER, 900, 1400, 2000);
+  }
+  return MID_POINT;
+}
 
+
+//Send the autostop cuttoff on aux based on if the lower button is depressed.
+void sendCurrentAuxVal(){
+  if(auxDepressed) {
+    aux.writeMicroseconds(AUX_ON);
+  } else {
+    aux.writeMicroseconds(AUX_OFF);
+  }
+}
+
+// Send the PWM for the motor.
+void sendControllerPWM(ControllerInput* input){
+  //Check for aux button change (lower button)
+  if(input->getLowerButton() != auxDepressed){
+    auxDepressed = input->getLowerButton();
+  } 
   //Check for the upper button. This will tell to send a signal.
   if(input->getUpperButton()){
     
@@ -69,8 +104,8 @@ void sendControllerPWM(ControllerInput* input){
      * Up: 2000
      * Low: 1000
      */
-    int val = map(input->getPotValueFlipped(), 0, 1000, 1000, 2000);
-    Serial.println("Sending value: " + (String) val);
+    int val = mapPotValue(input->getPotValueFlipped());
+    Serial.println("Throttle: " + (String) val + " Aux Button: " + (String) auxDepressed);
     throttle.writeMicroseconds(val);
   } else {
     //FAILSAFE
@@ -83,8 +118,9 @@ void sendControllerPWM(ControllerInput* input){
 void setup() {
   Serial.begin(9600);
   radioHandler = new RadioHandler(RFM95_RST, RFM95_CS, RFM95_INT, RF95_FREQ);
-  throttle.attach(THROTTLE_PIN);
   aux.attach(AUX_SWITCH_PIN);
+  throttle.attach(THROTTLE_PIN);
+  auxDepressed = false;
 }
 
 void handleInput() {
@@ -115,6 +151,7 @@ void handleInput() {
 //Check for input and check for lack of input.
 void loop()
 {
+  sendCurrentAuxVal();
   handleInput();
   //Check that we are still connected.
   checkSendFailsafePWM();
