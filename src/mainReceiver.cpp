@@ -42,9 +42,9 @@ boolean auxDepressed;
 
 //FAILSAFE Method in case radio loses connection. Shut off motor and 
 void sendFailsafePWM(){
-  // auxDepressed = false;
+  auxDepressed = false;
   throttle.writeMicroseconds(MID_POINT);
-  // aux.writeMicroseconds(AUX_OFF);
+  aux.writeMicroseconds(AUX_OFF);
 }
 
 //Check how long its been since the last valid packet.
